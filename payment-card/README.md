@@ -2,9 +2,9 @@
 
 ### Functionality
 - Card number validator using Luhn Algorithm
-- Card Number Generator (TBA)
+- Card Number Generator
 - Expiry data validator 
-- Issuing network (TBA)
+- Issuing network
 
 ---
 

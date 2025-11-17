@@ -3,11 +3,10 @@ package pcard
 import "errors"
 
 var (
-	ErrInvalidTotalDigits  = errors.New("invalid total digits")
-	ErrInvalidExpiryFormat = errors.New("invalid expiry format")
-	ErrInvalidExpiryDate   = errors.New("invalid expiry date")
-	ErrOverExpiry          = errors.New("over year of expiry")
-	ErrInvalidPaymentCard  = errors.New("invalid payment card")
+	ErrInvalidTotalDigits = errors.New("invalid total digits")
+	ErrInvalidExpiryDate  = errors.New("invalid expiry date")
+	ErrIssuerNotFound     = errors.New("issuer not found")
+	ErrInvalidNumber      = errors.New("invalid payment number")
 )
 
 const (

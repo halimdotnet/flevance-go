@@ -2,9 +2,60 @@ package pcard
 
 import (
 	"strconv"
-	"strings"
 	"time"
 )
+
+type PaymentCard struct {
+	ValidNumber bool
+	ValidIssuer bool
+	ValidExpiry bool
+	Data        struct {
+		Number string
+		Issuer string
+		Expiry time.Time
+	}
+}
+
+func ValidatePaymentCard(num string, exp string) (result PaymentCard, err error) {
+	n := ReplaceChar(num)
+	if len(n) < 1 {
+		return result, ErrInvalidTotalDigits
+	}
+
+	err = Digits(n)
+	if err != nil {
+		return result, err
+	}
+
+	var vnRes, veRes, viRes bool
+	var riRes string
+	var reRes time.Time
+
+	vnRes = ValidateNumber(n)
+	if vnRes == false {
+		return result, ErrInvalidNumber
+	}
+
+	viRes, riRes, err = validateIssuerNetwork(n)
+	if err != nil {
+		return result, err
+	}
+
+	veRes, reRes, err = validateExpiry(exp)
+	if err != nil {
+		return result, err
+	}
+
+	result.ValidNumber = vnRes
+	result.ValidIssuer = viRes
+	result.ValidExpiry = veRes
+	result.Data.Number = n
+	result.Data.Issuer = riRes
+	result.Data.Expiry = reRes
+
+	return result, nil
+
+}
 
 func ValidateNumber(input string) bool {
 	n := len(input)
@@ -31,47 +82,36 @@ func ValidateNumber(input string) bool {
 	return sum%10 == 0
 }
 
-func ReplaceChar(input string) string {
-	var sb strings.Builder
-	sb.Grow(len(input))
-	for i := 0; i < len(input); i++ {
-		c := input[i]
-		if c >= '0' && c <= '9' {
-			sb.WriteByte(c)
-		}
+func validateIssuerNetwork(input string) (bool, string, error) {
+
+	issuer := getIssuer(input)
+	if issuer == "" {
+		return false, "", ErrIssuerNotFound
 	}
 
-	return sb.String()
+	return true, string(issuer), nil
+
 }
 
-func Digits(input string) error {
-	l := len(input)
-	if l >= MIN_DIGITS && l <= MAX_DIGITS {
-		return nil
-	}
-
-	return ErrInvalidTotalDigits
-}
-
-func ValidateExpiry(input string) (bool, time.Time, error) {
+func validateExpiry(input string) (bool, time.Time, error) {
 	var exp bool
 	var expd time.Time
 	var err error
 
 	in := ReplaceChar(input)
 	if len(in) != 4 && len(in) != 6 {
-		return exp, expd, ErrInvalidExpiryFormat
+		return exp, expd, ErrInvalidExpiryDate
 	}
 
 	var mStr, yStr = in[0:2], in[2:]
 	var m, y int
 
 	if m, err = strconv.Atoi(mStr); err != nil {
-		return exp, expd, ErrInvalidExpiryFormat
+		return exp, expd, ErrInvalidExpiryDate
 	}
 
 	if y, err = strconv.Atoi(yStr); err != nil {
-		return exp, expd, ErrInvalidExpiryFormat
+		return exp, expd, ErrInvalidExpiryDate
 	}
 
 	if len(yStr) == 2 {
@@ -83,7 +123,7 @@ func ValidateExpiry(input string) (bool, time.Time, error) {
 		Add(-time.Second)
 
 	dCur := time.Now()
-	if expd.Before(dCur) {
+	if expd.After(dCur) {
 		exp = true
 	}
 

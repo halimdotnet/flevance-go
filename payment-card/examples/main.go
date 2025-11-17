@@ -6,22 +6,32 @@ import (
 	pcard "go.halimdotnet.dev/flevance-go/payment-card"
 )
 
+var ()
+
 func main() {
-	CardNumberValidation()
-	CardExpiryValidation()
+	//CardNumberValidation()
+	PaymentCardValidation()
 }
 
-func CardExpiryValidation() {
-	var dates = []string{"12-20", "09/2021", "01-30"}
+func PaymentCardValidation() {
+	d, err := pcard.ValidatePaymentCard("4532 0151 1234 5678", "10/29")
+	if err != nil {
+		panic(err)
+	}
 
-	for _, date := range dates {
-		v, d, _ := pcard.ValidateExpiry(date)
-		fmt.Printf("%s: [expired:%+v; %+v]\n", date, v, d)
+	fmt.Println("Valid Card Number: ", d.ValidNumber)
+	fmt.Println("Valid Expiry Date: ", d.ValidExpiry)
+	fmt.Println("Valid Issuer Network: ", d.ValidIssuer)
+	fmt.Println("Card Number ", d.Data.Number)
+	fmt.Println("Issuer Name: ", d.Data.Issuer)
+	if d.ValidExpiry == true {
+		fmt.Println("Valid until: ", d.Data.Expiry)
 	}
 
 }
 
-func CardNumberValidation() {
+func CardNumberValidation(n string) {
+
 	var numbers = []string{"4532 0151 1234 5678"}
 
 	for _, number := range numbers {
